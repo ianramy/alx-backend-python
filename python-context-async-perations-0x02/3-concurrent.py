@@ -9,6 +9,7 @@ async def async_fetch_users():
             print("All users:")
             for row in rows:
                 print(row)
+            return rows
 
 
 async def async_fetch_older_users():
@@ -18,6 +19,7 @@ async def async_fetch_older_users():
             print("Users older than 40:")
             for row in rows:
                 print(row)
+            return rows
 
 
 async def fetch_concurrently():
