@@ -1,6 +1,6 @@
 import sqlite3
 import functools
-
+from datetime import datetime #noqa
 
 def log_queries(func):
     @functools.wraps(func)
