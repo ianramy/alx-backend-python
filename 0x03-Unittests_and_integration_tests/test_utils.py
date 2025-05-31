@@ -1,8 +1,6 @@
-# test_utils.py
 #!/usr/bin/env python3
-"""
-Unittests for utils.py functions.
-"""
+# test_utils.py
+"""Unittests for utils.py functions."""
 
 import unittest
 from parameterized import parameterized
