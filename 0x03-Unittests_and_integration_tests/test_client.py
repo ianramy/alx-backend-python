@@ -14,19 +14,20 @@ from fixtures import TEST_PAYLOAD
 class TestGithubOrgClient(unittest.TestCase):
     """Unit tests for methods in GithubOrgClient."""
 
-    @parameterized.expand(
-        [
-            ("google",),
-            ("abc",),
-        ]
-    )
+    @parameterized.expand([
+        ("google_test", "google"),
+        ("abc_test", "abc"),
+    ])
+    
     @patch("client.get_json")
     def test_org(self, mock_get_json, org_name):
         """Test that org returns the correct payload."""
         mock_get_json.return_value = {"login": org_name}
         client = GithubOrgClient(org_name)
         self.assertEqual(client.org, {"login": org_name})
-        mock_get_json.assert_called_once_with(f"https://api.github.com/orgs/{org_name}")
+        mock_get_json.assert_called_once_with(
+            f"https://api.github.com/orgs/{org_name}"
+        )
 
     def test_public_repos_url(self):
         """Test that _public_repos_url returns the repos_url correctly."""
