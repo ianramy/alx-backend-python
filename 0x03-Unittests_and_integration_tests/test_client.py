@@ -12,12 +12,14 @@ from fixtures import TEST_PAYLOAD
 
 
 class TestGithubOrgClient(unittest.TestCase):
-    """Unit tests for methods in GithubOrgClient."""
+    """Unit tests for methods in GithubOrgOrgClient."""
 
-    @parameterized.expand([
-        ("google_test", "google"),
-        ("abc_test", "abc"),
-    ])
+    @parameterized.expand(
+        [
+            ("google_test", "google"),
+            ("abc_test", "abc"),
+        ]
+    )
     def test_org(self, name, org_name):
         with patch("client.get_json") as mock_get_json:
             mock_get_json.return_value = {"login": org_name}
@@ -51,12 +53,15 @@ class TestGithubOrgClient(unittest.TestCase):
         with patch.object(
             GithubOrgClient,
             "_public_repos_url",
-            new_callable=PropertyMock
-        ):
+            new_callable=PropertyMock,
+            return_value="https://api.github.com/orgs/test/repos",
+        ) as mock_public_repos_url:  # noqa
             client = GithubOrgClient("test")
             result = client.public_repos()
             self.assertEqual(result, ["repo1", "repo2"])
-            mock_get_json.assert_called_once_with("test_url")
+            mock_get_json.assert_called_once_with(
+                "https://api.github.com/orgs/test/repos"
+            )
 
     @parameterized.expand(
         [
@@ -67,9 +72,8 @@ class TestGithubOrgClient(unittest.TestCase):
     def test_has_license(self, repo, license_key, expected):
         """Test if repo has the specified license."""
         self.assertEqual(
-            GithubOrgClient.has_license(
-                repo, license_key
-            ), expected
+            GithubOrgClient.has_license(repo, license_key),
+            expected
         )
 
 
