@@ -37,7 +37,8 @@ class TestGithubOrgClient(unittest.TestCase):
             }
             client = GithubOrgClient("test")
             self.assertEqual(
-                client._public_repos_url, "https://api.github.com/orgs/test/repos"
+                client._public_repos_url,
+                "https://api.github.com/orgs/test/repos"
             )
 
     @patch("client.get_json")
@@ -47,7 +48,9 @@ class TestGithubOrgClient(unittest.TestCase):
             {"name": "repo1", "license": {"key": "apache-2.0"}},
             {"name": "repo2", "license": {"key": "other"}},
         ]
-        with patch.object(GithubOrgClient, "_public_repos_url", new="test_url"):
+        with patch.object(
+            GithubOrgClient, "_public_repos_url", new="test_url"
+        ):
             client = GithubOrgClient("test")
             result = client.public_repos()
             self.assertEqual(result, ["repo1", "repo2"])
@@ -61,7 +64,11 @@ class TestGithubOrgClient(unittest.TestCase):
     )
     def test_has_license(self, repo, license_key, expected):
         """Test if repo has the specified license."""
-        self.assertEqual(GithubOrgClient.has_license(repo, license_key), expected)
+        self.assertEqual(
+            GithubOrgClient.has_license(
+                repo, license_key
+            ), expected
+        )
 
 
 @parameterized_class(
