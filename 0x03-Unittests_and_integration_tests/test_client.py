@@ -1,5 +1,5 @@
-# test_client.py
 #!/usr/bin/env python3
+# test_client.py
 """
 Unittests for GithubOrgClient class in client.py
 """
@@ -12,6 +12,8 @@ from fixtures import TEST_PAYLOAD
 
 
 class TestGithubOrgClient(unittest.TestCase):
+    """Unit tests for methods in GithubOrgClient."""
+
     @parameterized.expand(
         [
             ("google",),
@@ -19,13 +21,15 @@ class TestGithubOrgClient(unittest.TestCase):
         ]
     )
     @patch("client.get_json")
-    def test_org(self, org_name, mock_get_json):
+    def test_org(self, mock_get_json, org_name):
+        """Test that org returns the correct payload."""
         mock_get_json.return_value = {"login": org_name}
         client = GithubOrgClient(org_name)
         self.assertEqual(client.org, {"login": org_name})
         mock_get_json.assert_called_once_with(f"https://api.github.com/orgs/{org_name}")
 
     def test_public_repos_url(self):
+        """Test that _public_repos_url returns the repos_url correctly."""
         with patch.object(GithubOrgClient, "org", new_callable=property) as mock_org:
             mock_org.return_value = {
                 "repos_url": "https://api.github.com/orgs/test/repos"
@@ -37,6 +41,7 @@ class TestGithubOrgClient(unittest.TestCase):
 
     @patch("client.get_json")
     def test_public_repos(self, mock_get_json):
+        """Test public_repos returns correct names of repos."""
         mock_get_json.return_value = [
             {"name": "repo1", "license": {"key": "apache-2.0"}},
             {"name": "repo2", "license": {"key": "other"}},
@@ -54,6 +59,7 @@ class TestGithubOrgClient(unittest.TestCase):
         ]
     )
     def test_has_license(self, repo, license_key, expected):
+        """Test if repo has the specified license."""
         self.assertEqual(GithubOrgClient.has_license(repo, license_key), expected)
 
 
@@ -68,8 +74,11 @@ class TestGithubOrgClient(unittest.TestCase):
     ]
 )
 class TestIntegrationGithubOrgClient(unittest.TestCase):
+    """Integration tests for public_repos using fixtures."""
+
     @classmethod
     def setUpClass(cls):
+        """Start patching requests.get with fixture payloads."""
         cls.get_patcher = patch("requests.get")
         cls.mock_get = cls.get_patcher.start()
 
@@ -80,12 +89,15 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        """Stop patching requests.get."""
         cls.get_patcher.stop()
 
     def test_public_repos(self):
+        """Test that public_repos returns expected repos list."""
         client = GithubOrgClient("test")
         self.assertEqual(client.public_repos(), self.expected_repos)
 
     def test_public_repos_with_license(self):
+        """Test public_repos returns only repos with apache-2.0 license."""
         client = GithubOrgClient("test")
         self.assertEqual(client.public_repos("apache-2.0"), self.apache2_repos)
