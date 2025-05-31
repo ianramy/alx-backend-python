@@ -5,7 +5,7 @@ Unittests for GithubOrgClient class in client.py
 """
 
 import unittest
-from unittest.mock import patch, Mock
+from unittest.mock import patch, Mock, PropertyMock
 from parameterized import parameterized, parameterized_class
 from client import GithubOrgClient
 from fixtures import TEST_PAYLOAD
@@ -49,7 +49,9 @@ class TestGithubOrgClient(unittest.TestCase):
             {"name": "repo2", "license": {"key": "other"}},
         ]
         with patch.object(
-            GithubOrgClient, "_public_repos_url", new="test_url"
+            GithubOrgClient,
+            "_public_repos_url",
+            new_callable=PropertyMock
         ):
             client = GithubOrgClient("test")
             result = client.public_repos()
