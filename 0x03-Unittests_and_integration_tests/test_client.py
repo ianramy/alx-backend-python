@@ -20,7 +20,7 @@ class TestGithubOrgClient(unittest.TestCase):
             ("abc_test", "abc"),
         ]
     )
-    def test_org(self, name, org_name):
+    def test_org(self, org_name):
         """Test that org returns the correct organization data."""
         with patch("client.get_json") as mock_get_json:
             mock_get_json.return_value = {"login": org_name}
@@ -48,23 +48,30 @@ class TestGithubOrgClient(unittest.TestCase):
 
     @patch("client.get_json")
     def test_public_repos(self, mock_get_json):
-        """Test public_repos returns correct names of repos."""
+        """
+        Test the `public_repos` method.
+
+        Mocks the get_json method and _public_repos_url property
+        to ensure correct parsing of repository names.
+        """
         mock_get_json.return_value = [
             {"name": "repo1", "license": {"key": "apache-2.0"}},
             {"name": "repo2", "license": {"key": "other"}},
+            {"name": "repo3", "license": None},
         ]
         with patch.object(
             GithubOrgClient,
             "_public_repos_url",
             new_callable=PropertyMock,
             return_value="https://api.github.com/orgs/test/repos",
-        ) as mock_public_repos_url:  # noqa
+        ) as mock_url:
             client = GithubOrgClient("test")
             result = client.public_repos()
-            self.assertEqual(result, ["repo1", "repo2"])
+            self.assertEqual(result, ["repo1", "repo2", "repo3"])
             mock_get_json.assert_called_once_with(
                 "https://api.github.com/orgs/test/repos"
             )
+            mock_url.assert_called_once()
 
     @parameterized.expand(
         [
@@ -73,7 +80,9 @@ class TestGithubOrgClient(unittest.TestCase):
         ]
     )
     def test_has_license(self, repo, license_key, expected):
-        """Test if repo has the specified license."""
+        """
+        Test if repo has the specified license.
+        """
         self.assertEqual(
             GithubOrgClient.has_license(repo, license_key),
             expected
