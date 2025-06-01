@@ -21,6 +21,7 @@ class TestGithubOrgClient(unittest.TestCase):
         ]
     )
     def test_org(self, name, org_name):
+        """Test that org returns the correct organization data."""
         with patch("client.get_json") as mock_get_json:
             mock_get_json.return_value = {"login": org_name}
             client = GithubOrgClient(org_name)

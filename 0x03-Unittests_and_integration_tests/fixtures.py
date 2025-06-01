@@ -5,7 +5,8 @@ Fixtures for integration tests.
 """
 
 TEST_PAYLOAD = (
-    {"repos_url": "https://api.github.com/orgs/test/repos"},
+    {"login": "test", 
+     "repos_url": "https://api.github.com/orgs/test/repos"},
     [
         {"name": "repo1", "license": {"key": "apache-2.0"}},
         {"name": "repo2", "license": {"key": "other"}},
