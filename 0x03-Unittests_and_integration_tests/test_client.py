@@ -100,8 +100,8 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
         self.mock_get = self.get_patcher.start()
 
         self.mock_get.side_effect = [
-            Mock(json=lambda: self.org_payload),
-            Mock(json=lambda: self.repos_payload),
+            Mock(json=lambda: type(self).org_payload),
+            Mock(json=lambda: type(self).repos_payload),
         ]
 
     # CHANGE tearDownClass to tearDown
