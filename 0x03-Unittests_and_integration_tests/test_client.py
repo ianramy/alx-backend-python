@@ -33,7 +33,9 @@ class TestGithubOrgClient(unittest.TestCase):
     def test_public_repos_url(self):
         """Test that _public_repos_url returns the repos_url correctly."""
         with patch.object(
-            GithubOrgClient, "org", new_callable=Mock
+            GithubOrgClient,
+            "org",
+            new_callable=PropertyMock,
         ) as mock_org:
             mock_org.return_value = {
                 "repos_url": "https://api.github.com/orgs/test/repos"
@@ -91,21 +93,21 @@ class TestGithubOrgClient(unittest.TestCase):
 class TestIntegrationGithubOrgClient(unittest.TestCase):
     """Integration tests for public_repos using fixtures."""
 
-    @classmethod
-    def setUpClass(cls):
-        """Start patching requests.get with fixture payloads."""
-        cls.get_patcher = patch("requests.get")
-        cls.mock_get = cls.get_patcher.start()
+    # CHANGE setUpClass to setUp
+    def setUp(self):
+        """Start patching requests.get with fixture payloads for EACH test."""
+        self.get_patcher = patch("requests.get")
+        self.mock_get = self.get_patcher.start()
 
-        cls.mock_get.side_effect = [
-            Mock(json=lambda: cls.org_payload),
-            Mock(json=lambda: cls.repos_payload),
+        self.mock_get.side_effect = [
+            Mock(json=lambda: self.org_payload),
+            Mock(json=lambda: self.repos_payload),
         ]
 
-    @classmethod
-    def tearDownClass(cls):
-        """Stop patching requests.get."""
-        cls.get_patcher.stop()
+    # CHANGE tearDownClass to tearDown
+    def tearDown(self):
+        """Stop patching requests.get after EACH test."""
+        self.get_patcher.stop()
 
     def test_public_repos(self):
         """Test that public_repos returns expected repos list."""
