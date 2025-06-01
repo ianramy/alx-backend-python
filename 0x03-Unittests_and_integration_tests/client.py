@@ -37,6 +37,7 @@ class GithubOrgClient:
         return names
 
     @staticmethod
-    def has_license(repo: Dict[str, Dict], license_key: str) -> bool:
-        """Check if a repo has the specified license."""
-        return repo.get("license", {}).get("key") == license_key
+    def has_license(repo: dict, license_key: str) -> bool:
+        """Check if repo has a license and matches the given license key."""
+        license_info = repo.get("license")
+        return license_info is not None and license_info.get("key") == license_key
