@@ -3,12 +3,8 @@ from .models import Message
 
 
 class MessageFilter(django_filters.FilterSet):
-    sent_after = django_filters.DateTimeFilter(
-        field_name="timestamp", lookup_expr="gte"
-    )
-    sent_before = django_filters.DateTimeFilter(
-        field_name="timestamp", lookup_expr="lte"
-    )
+    sent_after = django_filters.DateTimeFilter(field_name="sent_at", lookup_expr="gte")
+    sent_before = django_filters.DateTimeFilter(field_name="sent_at", lookup_expr="lte")
 
     class Meta:
         model = Message
