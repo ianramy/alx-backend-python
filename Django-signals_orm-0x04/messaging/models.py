@@ -1,6 +1,7 @@
 import uuid
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from .managers import UnreadMessagesManager
 
 
 class User(AbstractUser):
@@ -27,10 +28,6 @@ class Conversation(models.Model):
         return f"Conversation {self.conversation_id}"
 
 
-class UnreadMessagesManager(models.Manager):
-    def for_user(self, user):
-        return self.filter(receiver=user, read=False).only("id", "content", "timestamp")
-
 class Message(models.Model):
     message_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     conversation = models.ForeignKey(
@@ -39,9 +36,23 @@ class Message(models.Model):
     sender = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="sent_messages"
     )
+    receiver = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="received_messages",
+        null=True,
+        blank=True,
+    )
     message_body = models.TextField()
     sent_at = models.DateTimeField(auto_now_add=True)
     edited = models.BooleanField(default=False)
+    edited_by = models.ForeignKey(
+        User,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="edited_messages",
+    )
     parent_message = models.ForeignKey(
         "self", null=True, blank=True, on_delete=models.CASCADE, related_name="replies"
     )
@@ -58,8 +69,13 @@ class Notification(models.Model):
     is_read = models.BooleanField(default=False)
     timestamp = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self):
+        return f"Notification for {self.user.username}"
+
 class MessageHistory(models.Model):
     original_message = models.ForeignKey(Message, on_delete=models.CASCADE)
     old_content = models.TextField()
     edited_at = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self):
+        return f"Edit history of message {self.original_message.message_id}"

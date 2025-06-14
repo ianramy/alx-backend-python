@@ -1,11 +1,17 @@
+from django.shortcuts import render, redirect
+from django.contrib.auth import get_user_model
+from django.contrib.auth.decorators import login_required
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from django.views.decorators.cache import cache_page
+from django_filters.rest_framework import DjangoFilterBackend
 from .models import Conversation, Message
 from .serializers import ConversationSerializer, MessageSerializer
 from .permissions import IsParticipantOfConversation
 from .filters import MessageFilter
-from django_filters.rest_framework import DjangoFilterBackend
+
+User = get_user_model()
 
 
 def get_thread(message):
@@ -13,9 +19,41 @@ def get_thread(message):
     Recursively retrieves a message and all of its replies in a flat list.
     """
     thread = [message]
-    for reply in message.replies.all():
+    for reply in message.replies.all().order_by("sent_at"):
         thread.extend(get_thread(reply))
     return thread
+
+
+@login_required
+def delete_user(request):
+    """
+    Deletes the currently logged-in user's account and all related data.
+    """
+    user = request.user
+    user.delete()
+    return redirect("account_deleted")
+
+
+@login_required
+def unread_messages_view(request):
+    """
+    Displays unread messages for the logged-in user.
+    """
+    messages = Message.unread.unread_for_user(request.user)
+    return render(request, "inbox.html", {"messages": messages})
+
+
+@cache_page(60)
+def conversation_view(request, conversation_id):
+    """
+    Caches and displays all messages in a conversation.
+    """
+    messages = (
+        Message.objects.filter(conversation_id=conversation_id)
+        .select_related("sender")
+        .prefetch_related("replies")
+    )
+    return render(request, "conversation.html", {"messages": messages})
 
 
 class ConversationViewSet(viewsets.ModelViewSet):
@@ -43,7 +81,11 @@ class MessageViewSet(viewsets.ModelViewSet):
                 conversation = Conversation.objects.get(conversation_id=conversation_id)
                 if self.request.user not in conversation.participants.all():
                     return Message.objects.none()
-                return Message.objects.filter(conversation=conversation)
+                return (
+                    Message.objects.filter(conversation=conversation)
+                    .select_related("sender")
+                    .prefetch_related("replies")
+                )
             except Conversation.DoesNotExist:
                 return Message.objects.none()
 
