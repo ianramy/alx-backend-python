@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from rest_framework import viewsets, status
@@ -50,6 +50,14 @@ replies_prefetch = Prefetch(
         "id", "content", "sender__username", "sent_at"
     ),
 )
+
+@login_required
+def message_edit_history(request, message_id):
+    message = get_object_or_404(Message, id=message_id, sender=request.user)
+    history = message.history.select_related("edited_by").all()
+    return render(
+        request, "messaging/edit_history.html", {"message": message, "history": history}
+    )
 
 
 @cache_page(60)
