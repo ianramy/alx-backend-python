@@ -10,6 +10,7 @@ from .models import Conversation, Message
 from .serializers import ConversationSerializer, MessageSerializer
 from .permissions import IsParticipantOfConversation
 from .filters import MessageFilter
+from django.db.models import Prefetch
 
 User = get_user_model()
 
@@ -43,6 +44,14 @@ def unread_messages_view(request):
     return render(request, "inbox.html", {"messages": messages})
 
 
+replies_prefetch = Prefetch(
+    "replies",
+    queryset=Message.objects.select_related("sender").only(
+        "id", "content", "sender__username", "sent_at"
+    ),
+)
+
+
 @cache_page(60)
 def conversation_view(request, conversation_id):
     """
@@ -51,6 +60,7 @@ def conversation_view(request, conversation_id):
     messages = (
         Message.objects.filter(conversation_id=conversation_id)
         .select_related("sender")
+        .only("content", "sender__username", "sent_at")
         .prefetch_related("replies")
     )
     return render(request, "conversation.html", {"messages": messages})
