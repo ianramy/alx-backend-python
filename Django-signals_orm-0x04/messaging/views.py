@@ -94,7 +94,14 @@ class MessageViewSet(viewsets.ModelViewSet):
                 return (
                     Message.objects.filter(conversation=conversation)
                     .select_related("sender")
-                    .prefetch_related("replies")
+                    .prefetch_related(
+                        Prefetch(
+                            "replies",
+                            queryset=Message.objects.select_related("sender","receiver").only(
+                                "id", "content", "sender__username", "sent_at"
+                            ),
+                        )
+                    )
                 )
             except Conversation.DoesNotExist:
                 return Message.objects.none()
