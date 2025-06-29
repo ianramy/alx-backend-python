@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Apply rolling update
+echo "Applying rolling update..."
+kubectl apply -f messaging_app/blue_deployment.yaml
+
+# Monitor rollout status
+kubectl rollout status deployment/messaging-app
+
+# Test for downtime
+echo "Testing application availability..."
+while true
+do
+    curl -s http://messaging-app.local || echo "Request failed"
+    sleep 2
+done
