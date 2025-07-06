@@ -1,0 +1,49 @@
+pipeline {
+    agent any
+
+    environment {
+        GITHUB_REPO = 'https://github.com/ianramy/alx-backend-python.git'
+        APP_DIR = 'messaging_app'
+        VENV = 'venv'
+    }
+
+    stages {
+        stage('Clone Repository') {
+            steps {
+                git url: "${GITHUB_REPO}"
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh 'python3 -m venv venv'
+                sh './venv/bin/pip install -r messaging_app/requirements.txt'
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                sh './venv/bin/pytest --junitxml=test-results.xml'
+            }
+            post {
+                always {
+                    junit 'test-results.xml'
+                }
+            }
+        }
+    }
+    stage('Build Docker Image') {
+    steps {
+        sh 'docker build -t your_dockerhub_username/messaging_app:latest messaging_app'
+    }
+}
+
+stage('Push Docker Image') {
+    steps {
+        withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+            sh 'echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin'
+            sh 'docker push your_dockerhub_username/messaging_app:latest'
+        }
+    }
+}
+}
